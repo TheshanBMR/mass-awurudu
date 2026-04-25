@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>සිංහල අලුත් අවුරුදු ක්‍රීඩා - Mass IT Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Noto Sans Sinhala', sans-serif;
+            background-color: #fffbeb;
+            background-image: radial-gradient(#f59e0b 0.5px, transparent 0.5px), radial-gradient(#f59e0b 0.5px, #fffbeb 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #ea580c, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .game-card { transition: all 0.3s ease; }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);
+            border-color: #ea580c;
+        }
+
+        @keyframes swing {
+            0% { transform: rotate(10deg); }
+            50% { transform: rotate(-10deg); }
+            100% { transform: rotate(10deg); }
+        }
+        .swing-anim { animation: swing 2s infinite ease-in-out; transform-origin: top center; }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .pop-anim { animation: pop 0.2s ease-in-out; }
+
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        #meter-container { width: 100%; height: 30px; background: #e5e7eb; border-radius: 15px; position: relative; overflow: hidden; border: 2px solid #374151; }
+        #meter-target { position: absolute; left: 45%; width: 10%; height: 100%; background: #22c55e; }
+        #meter-indicator { position: absolute; left: 0; width: 6px; height: 100%; background: #000; transition: left 0.05s linear; }
+
+        .pot-item { position: absolute; font-size: 3rem; cursor: pointer; transition: transform 0.1s; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
+        .pot-item:active { transform: scale(0.8); }
+
+        #pole-container { width: 40px; height: 250px; background: linear-gradient(to right, #8b5a2b, #d2b48c, #8b5a2b); border-radius: 10px; position: relative; margin: 0 auto; }
+        #climber { position: absolute; bottom: 0; left: -15px; font-size: 2.5rem; transition: bottom 0.1s ease; }
+
+        #rope-container { width: 100%; height: 20px; background: repeating-linear-gradient(45deg, #d97706, #d97706 10px, #b45309 10px, #b45309 20px); border-radius: 10px; position: relative; margin-top: 40px; }
+        #rope-marker { position: absolute; left: 50%; top: -20px; font-size: 2rem; transform: translateX(-50%); transition: left 0.1s ease; }
+
+        #elephant-container { position: relative; width: 300px; height: 300px; margin: 0 auto; background-color: #fff; border: 2px solid #ccc; border-radius: 10px; cursor: crosshair; }
+        .eye-target { position: absolute; width: 15px; height: 15px; background: red; border-radius: 50%; transform: translate(-50%, -50%); display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pb-10">
+
+    <!-- Header -->
+    <header class="w-full bg-white shadow-md py-4 mb-6 border-b-4 border-orange-500 text-center">
+        <p class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">Presented By</p>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-blue-900 mb-1">Mass IT Solutions</h1>
+        <h2 class="text-xl md:text-2xl font-bold gradient-text">සිංහල අලුත් අවුරුදු ක්‍රීඩා තරඟාවලිය</h2>
+    </header>
+
+    <main class="w-full max-w-5xl px-4 flex-grow flex flex-col items-center">
+
+        <!-- 1. Login View -->
+        <div id="login-view" class="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl border-2 border-orange-200 mt-10 text-center fade-in">
+            <div class="text-6xl mb-4">🌞</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">ආයුබෝවන්!</h2>
+            <p class="text-gray-600 mb-6">තරඟයට සහභාගී වීමට ඔබගේ නම ඇතුළත් කරන්න.</p>
+            <input type="text" id="username-input" placeholder="ඔබගේ නම (උදා: කසුන්)"
+                class="w-full text-center text-xl p-4 border-2 border-gray-300 rounded-xl mb-6 focus:outline-none focus:border-orange-500 font-bold text-gray-700">
+            <button onclick="loginUser()"
+                class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white text-xl font-bold py-4 rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition-all">
+                ඇතුල් වන්න
+            </button>
+            <p id="login-error" class="text-red-500 mt-3 hidden text-sm font-bold">කරුණාකර නම ඇතුළත් කරන්න!</p>
+        </div>
+
+        <!-- 2. Dashboard View -->
+        <div id="dashboard-view" class="w-full hidden fade-in">
+            <!-- User Info Bar -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-l-8 border-orange-500 flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">ක්‍රීඩකයා: <span id="display-name" class="text-orange-600">Name</span></h3>
+                    <p class="text-gray-500">සියලුම ක්‍රීඩා සම්පූර්ණ කර වැඩිම ලකුණු ලබාගන්න!</p>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center gap-4 mt-4 md:mt-0">
+                    <div class="text-center bg-orange-100 px-8 py-3 rounded-xl border border-orange-200">
+                        <p class="text-sm font-bold text-orange-800">මුළු ලකුණු</p>
+                        <p id="total-score" class="text-4xl font-extrabold text-red-600">0</p>
+                    </div>
+                    <button onclick="goToLeaderboard()"
+                        class="bg-blue-900 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-800 active:scale-95 transition-all flex items-center gap-2 shadow-md whitespace-nowrap">
+                        🏆 ලකුණු පුවරුව
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-center text-lg text-gray-700 mb-6 font-semibold">තරඟ කිරීමට ක්‍රීඩාවක් තෝරාගන්න (එක් ක්‍රීඩාවකට උපරිම ලකුණු 100)</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="games-container"></div>
+        </div>
+
+        <!-- 3. Game View -->
+        <div id="game-view" class="hidden w-full flex-col items-center bg-white rounded-3xl p-6 md:p-10 shadow-xl border-4 border-orange-300 relative fade-in">
+            <div class="w-full flex justify-between items-center mb-6">
+                <button onclick="showDashboard()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors">
+                    <span>🔙</span> මෙනුවට
+                </button>
+                <div class="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg font-bold border border-orange-200">
+                    ඔබේ උපරිම ලකුණු: <span id="current-game-highscore" class="text-xl">0</span>
+                </div>
+            </div>
+            <h2 id="game-title" class="text-3xl md:text-4xl font-bold text-orange-600 mb-2 text-center">Game Title</h2>
+            <p id="game-instruction" class="text-gray-600 mb-8 text-center text-lg max-w-2xl">Instructions go here.</p>
+            <div id="game-board" class="w-full max-w-xl h-[350px] bg-gray-50 rounded-xl border-2 border-gray-200 relative flex flex-col justify-center items-center overflow-hidden mb-8"></div>
+            <div id="action-area" class="w-full flex justify-center gap-4">
+                <button id="action-btn" class="bg-gradient-to-r from-orange-500 to-red-600 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all">
+                    ආරම්භ කරන්න
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Account Disambiguation Modal (PIN-secured) -->
+    <div id="account-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4 fade-in">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <div class="text-5xl mb-3">🔐</div>
+            <h3 class="text-xl font-extrabold text-gray-800 mb-1">එම නමින් ගිණුම් හමු විය</h3>
+            <p id="account-modal-subtitle" class="text-gray-500 text-sm mb-4 font-semibold leading-snug"></p>
+            <div id="account-modal-list" class="flex flex-col gap-3 mb-4 max-h-72 overflow-y-auto pr-1"></div>
+            <div class="border-t border-gray-200 pt-4">
+                <p class="text-xs text-gray-400 mb-2 font-semibold">ඔබ සම්පූර්ණයෙන්ම නව ක්‍රීඩකයෙකු නම්</p>
+                <button id="account-new-btn"
+                    class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-3 rounded-xl hover:shadow-lg active:scale-95 transition-all">
+                    ✨ නව ගිණුමක් ආරම්භ කරන්න
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Reveal Modal (shown once on new registration) -->
+    <div id="pin-reveal-modal" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-50 p-4 fade-in">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+            <div class="text-5xl mb-3">🔑</div>
+            <h3 class="text-2xl font-extrabold text-gray-800 mb-2">ඔබේ රහස් PIN අංකය</h3>
+            <p class="text-gray-500 text-sm mb-5 font-semibold leading-relaxed">
+                මෙම අංකය <span class="text-red-600 font-extrabold">දැන්ම</span> සටහන් කරගන්න.<br>
+                ගිණුමට නැවත ඇතුල් වීමට අවශ්‍ය වේ.
+            </p>
+            <div class="bg-yellow-50 border-2 border-yellow-400 rounded-2xl py-5 mb-5">
+                <p class="text-sm font-bold text-yellow-700 mb-1 uppercase tracking-widest">ඔබේ PIN</p>
+                <p id="pin-reveal-code" class="text-6xl font-black tracking-[0.25em] text-gray-900">----</p>
+            </div>
+            <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6 text-left">
+                <p class="text-xs text-red-700 font-bold leading-relaxed">
+                    ⚠️ මෙම PIN නැවත නොපෙන්වයි. කාගේ හෝ සමඟ බෙදා නොගන්න.
+                    වෙනත් උපකරණයකින් හෝ browser එකකින් ඇතුල් වීමට මෙය අවශ්‍ය වේ.
+                </p>
+            </div>
+            <button id="pin-reveal-ok"
+                class="w-full bg-blue-900 text-white font-bold py-4 rounded-xl hover:bg-blue-800 active:scale-95 transition-all text-lg">
+                සටහන් කළා, ඉදිරියට යන්න ✓
+            </button>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4 fade-in">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div id="result-icon" class="text-7xl mb-4 pop-anim">🏆</div>
+            <h3 id="result-title" class="text-3xl font-bold mb-2">ප්‍රතිඵලය</h3>
+            <p id="result-desc" class="text-gray-600 mb-4 font-semibold text-lg">ඔබ සාර්ථකයි.</p>
+            <div class="bg-yellow-100 border border-yellow-400 rounded-xl py-4 mb-6">
+                <p class="text-sm font-bold text-yellow-800">ලබාගත් ලකුණු</p>
+                <p id="result-score" class="text-5xl font-extrabold text-orange-600">0</p>
+                <div id="result-best-area" class="mt-1 min-h-[24px]"></div>
+            </div>
+            <div class="flex flex-col gap-3">
+                <button onclick="restartCurrentGame()" class="bg-orange-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-orange-600 transition-colors">නැවත සෙල්ලම් කරන්න</button>
+                <button onclick="closeModalAndGoDashboard()" class="bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-xl hover:bg-gray-300 transition-colors">ප්‍රධාන මෙනුවට</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full mt-12 text-center text-gray-500 text-sm pb-4 font-semibold">
+        &copy; 2026 Mass IT Solutions. All Rights Reserved.
+    </footer>
+
+    <script>
+        // ============================================
+        // WINDOW EXPORTS (for onclick attributes)
+        // ============================================
+        window.loginUser = loginUser;
+        window.showDashboard = showDashboard;
+        window.startGame = startGame;
+        window.restartCurrentGame = restartCurrentGame;
+        window.closeModalAndGoDashboard = closeModalAndGoDashboard;
+        window.goToLeaderboard = goToLeaderboard;
+
+        // ============================================
+        // APP STATE
+        // ============================================
+        const appState = {
+            userId: '',
+            username: '',
+            scores: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        };
+
+        const gamesInfo = [
+            { id: 1, icon: '🥊', title: 'කොට්ට පොර',        desc: 'නිවැරදි වේලාවට පහර දෙන්න.' },
+            { id: 2, icon: '🏺', title: 'කණා මුට්ටි බිඳීම', desc: 'වේගයෙන් යන මුට්ටියට ගසන්න.' },
+            { id: 3, icon: '🌴', title: 'ලිස්සන ගහ නැගීම',  desc: 'නොවැටී ඉක්මනින් ගහට නගින්න.' },
+            { id: 4, icon: '🪢', title: 'කඹ ඇදීම',           desc: 'පරිගණකයට වඩා වේගයෙන් අදින්න.' },
+            { id: 5, icon: '🐘', title: 'අලියාට ඇස තැබීම',  desc: 'මතකයෙන් නිවැරදි තැනට ඇස තියන්න.' }
+        ];
+
+        let currentGameId = 0;
+        let gameInterval  = null;
+        let gameTimeout   = null;
+        let isPlaying     = false;
+        let currentGameState = {};
+
+        // ============================================
+        // LOCAL STORAGE  –  data.json simulation
+        // ============================================
+        function generateUserId() {
+            return 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 8);
+        }
+
+        function getGameData() {
+            try {
+                const raw = localStorage.getItem('sinhala_game_data');
+                return raw ? JSON.parse(raw) : { users: [] };
+            } catch(e) { return { users: [] }; }
+        }
+
+        function saveGameData(data) {
+            localStorage.setItem('sinhala_game_data', JSON.stringify(data, null, 2));
+        }
+
+        function saveCurrentUserScores() {
+            if (!appState.userId) return;
+            const data = getGameData();
+            const idx  = data.users.findIndex(u => u.id === appState.userId);
+            if (idx !== -1) {
+                data.users[idx].scores     = { ...appState.scores };
+                data.users[idx].lastPlayed = new Date().toISOString();
+                saveGameData(data);
+            }
+        }
+
+        function goToLeaderboard() {
+            window.location.href = './leaderboard';
+        }
+
+        // ============================================
+        // VIEW SWITCHER
+        // ============================================
+        function switchView(viewName) {
+            const views = {
+                login:     document.getElementById('login-view'),
+                dashboard: document.getElementById('dashboard-view'),
+                game:      document.getElementById('game-view')
+            };
+            Object.values(views).forEach(v => {
+                v.classList.add('hidden');
+                v.classList.remove('flex');
+            });
+            const target = views[viewName];
+            target.classList.remove('hidden');
+            if (viewName === 'game') target.classList.add('flex');
+        }
+
+        // ============================================
+        // LOGIN
+        // ============================================
+        function loginUser() {
+            const usernameInput = document.getElementById('username-input');
+            const loginError    = document.getElementById('login-error');
+            const name          = usernameInput.value.trim();
+
+            if (name === '') { loginError.classList.remove('hidden'); return; }
+            loginError.classList.add('hidden');
+
+            const data    = getGameData();
+            const matches = data.users.filter(u => u.name.toLowerCase() === name.toLowerCase());
+
+            if (matches.length > 0) {
+                showAccountModal(name, matches);
+            } else {
+                createNewAccount(name);
+            }
+        }
+
+        // ── Account picker modal (PIN-gated) ─────────────────────────────
+        function showAccountModal(name, matches) {
+            const modal    = document.getElementById('account-modal');
+            const subtitle = document.getElementById('account-modal-subtitle');
+            const list     = document.getElementById('account-modal-list');
+            const newBtn   = document.getElementById('account-new-btn');
+
+            subtitle.innerText = matches.length === 1
+                ? `"${name}" නමින් ගිණුමක් දැනටමත් ඇත. ඔබේ ගිණුම නම් PIN ඇතුළත් කරන්න.`
+                : `"${name}" නමින් ගිණුම් ${matches.length}ක් ඇත. ඔබේ ගිණුම හඳුනාගෙන PIN ඇතුළත් කරන්න.`;
+
+            list.innerHTML = '';
+            matches.forEach(user => {
+                const total      = Object.values(user.scores || {}).reduce((a, b) => Number(a) + Number(b), 0);
+                const lastPlayed = user.lastPlayed
+                    ? new Date(user.lastPlayed).toLocaleDateString('si-LK', { year: 'numeric', month: 'short', day: 'numeric' })
+                    : 'නොදන්නා';
+
+                const card = document.createElement('div');
+                card.className = 'border-2 border-orange-200 rounded-2xl p-4 text-left bg-orange-50';
+                card.dataset.uid = user.id;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center gap-3 mb-3">
+                        <div class="min-w-0">
+                            <p class="font-extrabold text-gray-800 text-base truncate">${escHtml(user.name)}</p>
+                            <p class="text-xs text-gray-500 font-semibold">
+                                මුළු ලකුණු: <span class="text-orange-600 font-extrabold">${total}</span>
+                                &nbsp;·&nbsp; අවසන් වරට: ${lastPlayed}
+                            </p>
+                        </div>
+                        <button class="toggle-pin-btn shrink-0 bg-blue-900 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-blue-800 active:scale-95 transition-all whitespace-nowrap">
+                            PIN ඇතුල් කරන්න
+                        </button>
+                    </div>
+                    <!-- PIN entry area (hidden by default) -->
+                    <div class="pin-entry hidden">
+                        <p class="text-xs text-gray-600 font-bold mb-2">ලියාපදිංචි වූ විට දුන් 4-ඉලක්කම් PIN ඇතුළත් කරන්න:</p>
+                        <div class="flex gap-2">
+                            <input type="number" inputmode="numeric" pattern="[0-9]*"
+                                class="pin-input w-full text-center text-2xl font-black p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+                                placeholder="• • • •" maxlength="4">
+                            <button class="confirm-pin-btn bg-green-600 text-white font-bold px-4 rounded-xl hover:bg-green-700 active:scale-95 transition-all whitespace-nowrap">
+                                ✓
+                            </button>
+                        </div>
+                        <p class="pin-error hidden text-red-600 text-xs font-bold mt-2">❌ PIN වැරදිය. නැවත උත්සාහ කරන්න.</p>
+                    </div>`;
+
+                // Toggle PIN entry
+                card.querySelector('.toggle-pin-btn').addEventListener('click', () => {
+                    const entry = card.querySelector('.pin-entry');
+                    const isHidden = entry.classList.contains('hidden');
+                    // Close all other open PIN entries first
+                    list.querySelectorAll('.pin-entry').forEach(e => e.classList.add('hidden'));
+                    list.querySelectorAll('.toggle-pin-btn').forEach(b => b.innerText = 'PIN ඇතුල් කරන්න');
+                    if (isHidden) {
+                        entry.classList.remove('hidden');
+                        card.querySelector('.toggle-pin-btn').innerText = '✕ අවලංගු කරන්න';
+                        card.querySelector('.pin-input').focus();
+                    }
+                });
+
+                // Confirm PIN
+                const doConfirm = () => {
+                    const input    = card.querySelector('.pin-input');
+                    const errMsg   = card.querySelector('.pin-error');
+                    const entered  = input.value.trim();
+                    if (String(user.pin) === entered) {
+                        modal.classList.add('hidden');
+                        loadExistingAccount(user);
+                    } else {
+                        errMsg.classList.remove('hidden');
+                        input.value = '';
+                        input.focus();
+                    }
+                };
+
+                card.querySelector('.confirm-pin-btn').addEventListener('click', doConfirm);
+                card.querySelector('.pin-input').addEventListener('keydown', e => {
+                    if (e.key === 'Enter') doConfirm();
+                    // Hide error on new input
+                    card.querySelector('.pin-error').classList.add('hidden');
+                });
+
+                list.appendChild(card);
+            });
+
+            newBtn.onclick = () => {
+                modal.classList.add('hidden');
+                createNewAccount(document.getElementById('username-input').value.trim());
+            };
+
+            modal.classList.remove('hidden');
+        }
+
+        // ── Load an existing account ──────────────────────────────────────
+        function loadExistingAccount(user) {
+            appState.userId   = user.id;
+            appState.username = user.name;
+            appState.scores   = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, ...user.scores };
+            localStorage.setItem('sinhala_game_current', JSON.stringify({ id: user.id, name: user.name }));
+            document.getElementById('display-name').innerText = user.name;
+            showDashboard();
+        }
+
+        // ── Create brand-new account → show PIN reveal ───────────────────
+        function generateUniquePin() {
+            const data    = getGameData();
+            const usedPins = new Set(data.users.map(u => u.pin).filter(Boolean));
+            let pin;
+            do {
+                pin = String(Math.floor(1000 + Math.random() * 9000));
+            } while (usedPins.has(pin));
+            return pin;
+        }
+
+        function createNewAccount(name) {
+            const userId = generateUserId();
+            const pin    = generateUniquePin();
+
+            appState.userId   = userId;
+            appState.username = name;
+            appState.scores   = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+            localStorage.setItem('sinhala_game_current', JSON.stringify({ id: userId, name }));
+
+            const data = getGameData();
+            data.users.push({
+                id:         userId,
+                name,
+                pin,
+                scores:     { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                lastPlayed: new Date().toISOString()
+            });
+            saveGameData(data);
+
+            document.getElementById('display-name').innerText = name;
+            showPinReveal(pin);
+        }
+
+        // ── Show the one-time PIN reveal modal ───────────────────────────
+        function showPinReveal(pin) {
+            const modal = document.getElementById('pin-reveal-modal');
+            document.getElementById('pin-reveal-code').innerText = pin;
+            modal.classList.remove('hidden');
+            document.getElementById('pin-reveal-ok').onclick = () => {
+                modal.classList.add('hidden');
+                showDashboard();
+            };
+        }
+
+        function escHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ============================================
+        // DASHBOARD
+        // ============================================
+        function showDashboard() {
+            cleanupGame();
+            renderDashboardGames();
+            updateTotalScore();
+            switchView('dashboard');
+        }
+
+        function renderDashboardGames() {
+            const container = document.getElementById('games-container');
+            if (!container) return;
+            container.innerHTML = '';
+            gamesInfo.forEach(game => {
+                const score = appState.scores[game.id];
+                const btn = document.createElement('button');
+                btn.onclick = () => startGame(game.id);
+                btn.className = `game-card bg-white rounded-2xl p-6 border-2 ${score > 0 ? 'border-green-400 bg-green-50' : 'border-orange-200'} flex flex-col items-center justify-center gap-3 text-left w-full`;
+                btn.innerHTML = `
+                    <div class="text-5xl mb-2">${game.icon}</div>
+                    <h3 class="text-xl font-bold text-gray-800 text-center">${game.title}</h3>
+                    <p class="text-sm text-gray-500 text-center h-10">${game.desc}</p>
+                    <div class="mt-2 bg-${score > 0 ? 'green' : 'gray'}-100 w-full py-2 rounded-lg text-center border border-${score > 0 ? 'green' : 'gray'}-200">
+                        <span class="text-xs font-bold text-gray-500 uppercase">ලකුණු</span>
+                        <p class="text-2xl font-black text-${score > 0 ? 'green' : 'gray'}-700">${score}</p>
+                    </div>`;
+                container.appendChild(btn);
+            });
+        }
+
+        function updateTotalScore() {
+            const elem = document.getElementById('total-score');
+            const total = Object.values(appState.scores).reduce((a, b) => a + b, 0);
+            if (elem) elem.innerText = total;
+        }
+
+        // ============================================
+        // GAME MANAGER
+        // ============================================
+        function startGame(id) {
+            currentGameId = id;
+            document.getElementById('current-game-highscore').innerText = appState.scores[id];
+            switchView('game');
+            setupGame(id);
+        }
+
+        function cleanupGame() {
+            clearInterval(gameInterval);
+            clearTimeout(gameTimeout);
+            isPlaying        = false;
+            currentGameState = {};
+            const board = document.getElementById('game-board');
+            const btn   = document.getElementById('action-btn');
+            if (board) board.innerHTML = '';
+            if (btn)   btn.onclick = null;
+        }
+
+        function processGameEnd(scoreEarned, message) {
+            isPlaying = false;
+            clearInterval(gameInterval);
+
+            scoreEarned = Math.max(0, Math.min(100, Math.round(scoreEarned)));
+
+            const previousBest = appState.scores[currentGameId];
+            let isNewHighScore = false;
+
+            if (scoreEarned > previousBest) {
+                appState.scores[currentGameId] = scoreEarned;
+                isNewHighScore = true;
+                saveCurrentUserScores();
+                document.getElementById('current-game-highscore').innerText = scoreEarned;
+                updateTotalScore();
+            }
+
+            // Modal content
+            document.getElementById('result-icon').innerHTML = scoreEarned >= 50 ? '🎉' : '😥';
+            const resultTitle = document.getElementById('result-title');
+            resultTitle.innerHTML = scoreEarned >= 50 ? 'නියමයි!' : 'තව උත්සාහ කරන්න!';
+            resultTitle.className = `text-3xl font-bold mb-2 ${scoreEarned >= 50 ? 'text-green-600' : 'text-red-600'}`;
+            document.getElementById('result-desc').innerHTML = message;
+            document.getElementById('result-score').innerText = scoreEarned;
+
+            // Best score indicator
+            const bestArea = document.getElementById('result-best-area');
+            if (isNewHighScore && previousBest === 0 && scoreEarned > 0) {
+                bestArea.innerHTML = `<p class="text-green-600 font-bold text-sm">🏆 පළමු ලකුණු — නව වාර්තාවක්!</p>`;
+            } else if (isNewHighScore) {
+                bestArea.innerHTML = `<p class="text-green-600 font-bold text-sm">🏆 නව හොඳම ලකුණු! <span class="text-gray-400 font-normal">(පෙර: ${previousBest})</span></p>`;
+            } else if (previousBest > 0) {
+                bestArea.innerHTML = `<p class="text-gray-500 text-sm">හොඳම ලකුණු: <span class="font-extrabold text-orange-600">${previousBest}</span></p>`;
+            } else {
+                bestArea.innerHTML = '';
+            }
+
+            document.getElementById('result-modal').classList.remove('hidden');
+        }
+
+        function closeModalAndGoDashboard() {
+            document.getElementById('result-modal').classList.add('hidden');
+            showDashboard();
+        }
+
+        function restartCurrentGame() {
+            document.getElementById('result-modal').classList.add('hidden');
+            setupGame(currentGameId);
+        }
+
+        function setupGame(id) {
+            cleanupGame();
+            const actionBtn = document.getElementById('action-btn');
+            actionBtn.innerText      = "ආරම්භ කරන්න";
+            actionBtn.style.display  = "block";
+            actionBtn.disabled       = false;
+            const info = gamesInfo.find(g => g.id === id);
+            document.getElementById('game-title').innerText = `${info.icon} ${info.title}`;
+            switch(id) {
+                case 1: initKottaPora();   break;
+                case 2: initKanaMutti();   break;
+                case 3: initLissanaGaha(); break;
+                case 4: initKambaAdeema(); break;
+                case 5: initAliyataEsa();  break;
+            }
+        }
+
+        // ============================================
+        // AUTO-LOGIN ON PAGE LOAD
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const savedRaw = localStorage.getItem('sinhala_game_current');
+                if (savedRaw) {
+                    const saved = JSON.parse(savedRaw);
+                    const data  = getGameData();
+                    const found = data.users.find(u => u.id === saved.id);
+                    if (found) {
+                        loadExistingAccount(found);
+                        return;
+                    }
+                    localStorage.removeItem('sinhala_game_current');
+                }
+            } catch(e) {
+                localStorage.removeItem('sinhala_game_current');
+            }
+        });
+
+        // ==========================================
+        // GAME 1: කොට්ට පොර (Timing Game)
+        // ==========================================
+        function initKottaPora() {
+            document.getElementById('game-instruction').innerText = "දර්ශකය හරි මැද කොළ පාට තීරුවේ ඇති විට 'පහර දෙන්න' ඔබන්න. මැදට කොතරම් ළං වෙනවාද යන්න මත ලකුණු ලැබේ.";
+            document.getElementById('game-board').innerHTML = `
+                <div class="flex justify-between w-full px-12 mb-8 items-end">
+                    <div class="text-7xl swing-anim" style="animation-duration:3s">🧍</div>
+                    <div class="text-6xl pb-4">🪵</div>
+                    <div class="text-7xl swing-anim" style="animation-duration:2.5s;transform:scaleX(-1)">🧍</div>
+                </div>
+                <div id="meter-container" class="w-4/5 shadow-inner">
+                    <div id="meter-target" class="bg-gradient-to-r from-green-400 to-green-600"></div>
+                    <div id="meter-indicator" style="left:0%"></div>
+                </div>`;
+            document.getElementById('action-btn').onclick = () => { isPlaying ? actionKottaPora() : startKottaPora(); };
+        }
+
+        function startKottaPora() {
+            isPlaying = true;
+            document.getElementById('action-btn').innerText = "පහර දෙන්න! 🥊";
+            currentGameState = { pos: 0, dir: 1, speed: 2 };
+            gameInterval = setInterval(() => {
+                currentGameState.pos += currentGameState.dir * currentGameState.speed;
+                if (currentGameState.pos >= 98 || currentGameState.pos <= 0) {
+                    currentGameState.dir *= -1;
+                    currentGameState.speed = Math.random() * 2 + 2;
+                }
+                document.getElementById('meter-indicator').style.left = `${currentGameState.pos}%`;
+            }, 15);
+        }
+
+        function actionKottaPora() {
+            let pos = currentGameState.pos;
+            let distance = Math.abs(50 - pos);
+            let score = 0, msg = "";
+            if (distance <= 5)       { score = 100; msg = "විශිෂ්ට පහරක්! හරි මැදටම වැදුනා."; }
+            else if (distance <= 15) { score = 100 - (distance * 3); msg = "හොඳ පහරක්! නමුත් තව ටිකක් මැදට ගන්න තිබුණා."; }
+            else                     { score = 0;   msg = "අයියෝ! පහර වැරදුනා. ප්‍රතිවාදියා බේරුණා."; }
+            processGameEnd(score, msg);
+        }
+
+        // ==========================================
+        // GAME 2: කණා මුට්ටි බිඳීම (Reaction Game)
+        // ==========================================
+        function initKanaMutti() {
+            document.getElementById('game-instruction').innerText = "තිරයේ මතුවන මුට්ටි 5ක් ඉක්මනින් ක්ලික් කර බිඳින්න. ඔබගේ වේගය අනුව ලකුණු තීරණය වේ.";
+            document.getElementById('game-board').innerHTML = `
+                <div id="pot" class="pot-item hidden">🏺</div>
+                <div class="absolute top-4 left-4 text-gray-600 font-bold">මුට්ටි: <span id="hits-count">0</span>/5</div>
+                <div class="absolute top-4 right-4 text-red-600 font-bold">කාලය: <span id="timer-display">0.0</span>s</div>`;
+            document.getElementById('action-btn').onclick = startKanaMutti;
+        }
+
+        function startKanaMutti() {
+            isPlaying = true;
+            document.getElementById('action-btn').style.display = "none";
+            currentGameState = { hits: 0, startTime: Date.now(), maxPots: 5 };
+            const pot = document.getElementById('pot');
+            pot.classList.remove('hidden');
+            gameInterval = setInterval(() => {
+                let elapsed = (Date.now() - currentGameState.startTime) / 1000;
+                document.getElementById('timer-display').innerText = elapsed.toFixed(1);
+            }, 100);
+
+            function spawnPot() {
+                if (!isPlaying) return;
+                const gameBoard = document.getElementById('game-board');
+                const maxX = gameBoard.clientWidth - 80;
+                const maxY = gameBoard.clientHeight - 80;
+                pot.style.left = `${Math.floor(Math.random() * maxX) + 10}px`;
+                pot.style.top  = `${Math.floor(Math.random() * maxY) + 10}px`;
+                pot.innerText  = "🏺";
+                pot.style.transform = 'scale(1)';
+            }
+
+            pot.onmousedown = () => {
+                if (!isPlaying) return;
+                currentGameState.hits++;
+                document.getElementById('hits-count').innerText = currentGameState.hits;
+                pot.innerText = "💥";
+                pot.style.transform = 'scale(1.5)';
+                if (currentGameState.hits >= currentGameState.maxPots) {
+                    let totalTime = (Date.now() - currentGameState.startTime) / 1000;
+                    let score = totalTime <= 3 ? 100 : Math.max(0, 100 - ((totalTime - 3) * 15));
+                    setTimeout(() => processGameEnd(score, `ඔබ තත්පර ${totalTime.toFixed(1)} කින් මුට්ටි 5ම බින්දා.`), 300);
+                } else {
+                    setTimeout(spawnPot, 200);
+                }
+            };
+            spawnPot();
+            setInterval(() => { if (isPlaying && pot.innerText === "🏺") spawnPot(); }, 1200);
+        }
+
+        // ==========================================
+        // GAME 3: ලිස්සන ගහ නැගීම (Mashing Game)
+        // ==========================================
+        function initLissanaGaha() {
+            document.getElementById('game-instruction').innerText = "පහළට ලිස්සා යාමට පෙර 'නගින්න' බොත්තම වේගයෙන් ඔබා ගහ මුදුනටම යන්න.";
+            document.getElementById('game-board').innerHTML = `
+                <div class="h-full flex items-end pb-4 pt-4">
+                    <div id="pole-container"><div id="climber">🐒</div></div>
+                </div>`;
+            document.getElementById('action-btn').onclick = startLissanaGaha;
+        }
+
+        function startLissanaGaha() {
+            isPlaying = true;
+            document.getElementById('action-btn').innerText = "නගින්න! ⬆️";
+            currentGameState = { height: 0, startTime: Date.now() };
+            const climber      = document.getElementById('climber');
+            const maxHeightsPx = 200;
+
+            document.getElementById('action-btn').onclick = () => {
+                if (!isPlaying) return;
+                currentGameState.height += 15;
+                if (currentGameState.height > maxHeightsPx) currentGameState.height = maxHeightsPx;
+                climber.style.bottom = `${currentGameState.height}px`;
+                if (currentGameState.height >= maxHeightsPx) {
+                    let timeTaken = (Date.now() - currentGameState.startTime) / 1000;
+                    let score = timeTaken <= 3 ? 100 : Math.max(0, 100 - ((timeTaken - 3) * 10));
+                    processGameEnd(score, `ඔබ තත්පර ${timeTaken.toFixed(1)} කින් ගහ මුදුනට නැග්ගා.`);
+                }
+            };
+
+            gameInterval = setInterval(() => {
+                if (currentGameState.height > 0) {
+                    currentGameState.height -= 4;
+                    if (currentGameState.height < 0) currentGameState.height = 0;
+                    climber.style.bottom = `${currentGameState.height}px`;
+                }
+            }, 100);
+        }
+
+        // ==========================================
+        // GAME 4: කඹ ඇදීම (Tug of War)
+        // ==========================================
+        function initKambaAdeema() {
+            document.getElementById('game-instruction').innerText = "පරිගණකය ඔබව ඇදීමට පෙර, 'අදින්න' බොත්තම වේගයෙන් ඔබා ඔබේ පැත්තට කඹය ඇදගන්න.";
+            document.getElementById('game-board').innerHTML = `
+                <div class="flex justify-between w-full px-6 mb-4 text-5xl">
+                    <div class="text-red-500">🤖</div>
+                    <div class="text-blue-500">🧑</div>
+                </div>
+                <div class="w-full px-12">
+                    <div id="rope-container" class="shadow-md">
+                        <div id="rope-marker">🚩</div>
+                    </div>
+                </div>`;
+            document.getElementById('action-btn').onclick = startKambaAdeema;
+        }
+
+        function startKambaAdeema() {
+            isPlaying = true;
+            document.getElementById('action-btn').innerText = "අදින්න! 👉";
+            currentGameState = { pos: 50, clicks: 0, startTime: Date.now() };
+            const marker = document.getElementById('rope-marker');
+
+            document.getElementById('action-btn').onclick = () => {
+                if (!isPlaying) return;
+                currentGameState.pos += 4;
+                currentGameState.clicks++;
+                marker.style.left = `${currentGameState.pos}%`;
+                if (currentGameState.pos >= 90) {
+                    let time = (Date.now() - currentGameState.startTime) / 1000;
+                    let score = Math.max(50, 100 - (time * 5));
+                    processGameEnd(score, "සුපිරියි! ඔබ පරිගණකය පරාජය කළා.");
+                }
+            };
+
+            let aiBaseStrength = 2;
+            gameInterval = setInterval(() => {
+                aiBaseStrength += 0.05;
+                currentGameState.pos -= aiBaseStrength;
+                marker.style.left = `${currentGameState.pos}%`;
+                if (currentGameState.pos <= 10) {
+                    processGameEnd(0, "අයියෝ! පරිගණකය ඔබව පරාජය කළා.");
+                }
+            }, 200);
+        }
+
+        // ==========================================
+        // GAME 5: අලියාට ඇස තැබීම (Precision)
+        // ==========================================
+        function initAliyataEsa() {
+            document.getElementById('game-instruction').innerText = "ඇස තිබෙන ස්ථානය මතක තබා ගන්න. තත්පර 3කින් එය මැකී යයි. ඉන්පසු හරියටම එම ස්ථානය ක්ලික් කරන්න.";
+            document.getElementById('game-board').innerHTML = `
+                <div id="elephant-container" class="shadow-lg">
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 65 30 C 90 20, 100 50, 80 80 C 70 85, 60 70, 60 60 Z" fill="#9ca3af"/>
+                        <circle cx="50" cy="50" r="30" fill="#6b7280"/>
+                        <path d="M 30 70 C 20 80, 10 90, 20 100 C 25 100, 35 90, 45 75 Z" fill="#6b7280"/>
+                    </svg>
+                    <div id="the-eye" class="absolute w-4 h-4 bg-black rounded-full" style="left:38%;top:42%;transform:translate(-50%,-50%)"></div>
+                    <div id="user-mark" class="eye-target"></div>
+                </div>`;
+            document.getElementById('action-btn').onclick = startAliyataEsa;
+        }
+
+        function startAliyataEsa() {
+            isPlaying = true;
+            document.getElementById('action-btn').style.display = "none";
+            const eye = document.getElementById('the-eye');
+            const container  = document.getElementById('elephant-container');
+            const userMark   = document.getElementById('user-mark');
+            const gameInstruction = document.getElementById('game-instruction');
+            let countdown = 3;
+            gameInstruction.innerHTML = `<span class="text-red-600 font-bold">මතක තබා ගන්න... (${countdown})</span>`;
+
+            gameInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    gameInstruction.innerHTML = `<span class="text-red-600 font-bold">මතක තබා ගන්න... (${countdown})</span>`;
+                } else {
+                    clearInterval(gameInterval);
+                    eye.style.display = 'none';
+                    gameInstruction.innerHTML = '<span class="text-green-600 font-bold">දැන් ඇස තිබුණු තැන ක්ලික් කරන්න!</span>';
+                    container.onclick = (e) => {
+                        if (!isPlaying) return;
+                        isPlaying = false;
+                        container.onclick = null;
+                        const rect = container.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        userMark.style.left    = `${x}px`;
+                        userMark.style.top     = `${y}px`;
+                        userMark.style.display = 'block';
+                        eye.style.display      = 'block';
+                        eye.style.background   = '#22c55e';
+                        eye.style.border       = '2px solid white';
+                        const targetX  = 300 * 0.38;
+                        const targetY  = 300 * 0.42;
+                        const distance = Math.sqrt(Math.pow(x - targetX, 2) + Math.pow(y - targetY, 2));
+                        let score = 0, msg = "";
+                        if (distance <= 10)      { score = 100; msg = "විශිෂ්ටයි! ඔබ හරියටම ඇස තැබුවා."; }
+                        else if (distance <= 40) { score = Math.floor(100 - (distance * 2)); msg = "හොඳ උත්සාහයක්! ඇස ළඟින්ම තිබ්බා."; }
+                        else                     { score = 0; msg = "අයියෝ! ඇස තිබුණේ වෙනත් තැනක."; }
+                        setTimeout(() => processGameEnd(score, msg), 1200);
+                    };
+                }
+            }, 1000);
+        }
+
+    </script>
+</body>
+</html>

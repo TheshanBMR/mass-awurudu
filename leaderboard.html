@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ලකුණු පුවරුව - Mass IT Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Noto Sans Sinhala', sans-serif;
+            background-color: #fffbeb;
+            background-image: radial-gradient(#f59e0b 0.5px, transparent 0.5px), radial-gradient(#f59e0b 0.5px, #fffbeb 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            user-select: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #ea580c, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @keyframes goldPulse {
+            0%, 100% { box-shadow: 0 0 18px rgba(234,179,8,0.55); }
+            50%       { box-shadow: 0 0 36px rgba(234,179,8,0.9); }
+        }
+        @keyframes silverPulse {
+            0%, 100% { box-shadow: 0 0 14px rgba(148,163,184,0.5); }
+            50%       { box-shadow: 0 0 28px rgba(148,163,184,0.85); }
+        }
+        @keyframes bronzePulse {
+            0%, 100% { box-shadow: 0 0 14px rgba(180,83,9,0.45); }
+            50%       { box-shadow: 0 0 28px rgba(180,83,9,0.75); }
+        }
+
+        .gold-card   { border-color: #eab308 !important; animation: goldPulse   2.5s infinite; }
+        .silver-card { border-color: #94a3b8 !important; animation: silverPulse 2.5s infinite; }
+        .bronze-card { border-color: #b45309 !important; animation: bronzePulse 2.5s infinite; }
+
+        .rank-row-me { background: linear-gradient(to right, #fef3c7, #fde68a); border-left: 5px solid #f59e0b; }
+
+        .podium-bar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 12px;
+        }
+        .podium-slot {
+            flex: 1;
+            max-width: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-score-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f3f4f6;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pb-10">
+
+    <!-- Header -->
+    <header class="w-full bg-white shadow-md py-4 mb-6 border-b-4 border-orange-500 text-center">
+        <p class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">Presented By</p>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-blue-900 mb-1">Mass IT Solutions</h1>
+        <h2 class="text-xl md:text-2xl font-bold gradient-text">🏆 ලකුණු පුවරුව</h2>
+    </header>
+
+    <main class="w-full max-w-2xl px-4 fade-in">
+
+        <!-- Back Button -->
+        <button onclick="window.location.href='./index'"
+            class="mb-6 bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors active:scale-95">
+            🔙 ආපසු යන්න
+        </button>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden text-center bg-white rounded-3xl p-10 shadow-xl border-2 border-orange-200 mb-6">
+            <div class="text-6xl mb-4">🎮</div>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">තවම කිසිවෙක් ක්‍රීඩා කර නැත</h3>
+            <p class="text-gray-500 mb-6">ලකුණු ලබා ගැනීමට ප්‍රථමයෙන් ක්‍රීඩා කරන්න!</p>
+            <button onclick="window.location.href='index.html'"
+                class="bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold px-8 py-3 rounded-xl active:scale-95 transition-all">
+                ක්‍රීඩා කිරීමට යන්න
+            </button>
+        </div>
+
+        <!-- TOP 3 PODIUM -->
+        <div id="podium-section" class="hidden mb-8">
+            <h3 class="text-center text-lg font-extrabold text-gray-600 uppercase tracking-widest mb-6">🎖 ඉහළම ශ්‍රේණිගත ක්‍රීඩකයෝ</h3>
+
+            <!-- Podium layout: 2nd | 1st | 3rd -->
+            <div class="podium-bar" id="podium-bar"></div>
+        </div>
+
+        <!-- RANKS 4–10 -->
+        <div id="rank-list-section" class="hidden bg-white rounded-3xl shadow-xl border-2 border-orange-200 overflow-hidden mb-6">
+            <div class="bg-orange-50 border-b border-orange-200 px-6 py-4">
+                <h3 class="font-extrabold text-gray-700 text-base">🏅 ශ්‍රේණිගත කිරීම (4 – 10)</h3>
+            </div>
+            <div id="rank-list"></div>
+        </div>
+
+        <!-- CURRENT USER RANK (if outside top 10) -->
+        <div id="my-rank-section" class="hidden bg-white rounded-3xl shadow-xl border-2 border-yellow-400 overflow-hidden mb-6">
+            <div class="bg-yellow-50 border-b border-yellow-300 px-6 py-4">
+                <h3 class="font-extrabold text-gray-700 text-base">📍 ඔබේ ශ්‍රේණිය</h3>
+            </div>
+            <div id="my-rank-row"></div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full mt-12 text-center text-gray-500 text-sm pb-4 font-semibold">
+        &copy; 2026 Mass IT Solutions. All Rights Reserved.
+    </footer>
+
+    <script>
+        const gamesInfo = [
+            { id: 1, icon: '🥊' }, { id: 2, icon: '🏺' }, { id: 3, icon: '🌴' },
+            { id: 4, icon: '🪢' }, { id: 5, icon: '🐘' }
+        ];
+
+        function getGameData() {
+            try {
+                const raw = localStorage.getItem('sinhala_game_data');
+                return raw ? JSON.parse(raw) : { users: [] };
+            } catch(e) { return { users: [] }; }
+        }
+
+        function getCurrentUser() {
+            try {
+                const raw = localStorage.getItem('sinhala_game_current');
+                return raw ? JSON.parse(raw) : null;
+            } catch(e) { return null; }
+        }
+
+        function totalOf(scores) {
+            return Object.values(scores).reduce((a, b) => Number(a) + Number(b), 0);
+        }
+
+        function scoreBreakdown(scores) {
+            return gamesInfo.map(g => `<span class="game-score-pill">${g.icon} ${scores[g.id] || 0}</span>`).join('');
+        }
+
+        // ── Medal card for top 3 ──────────────────────────────────────────
+        function makePodiumCard(user, rank, rankClass, medalEmoji, heightClass) {
+            const total   = totalOf(user.scores);
+            const isMe    = user.isMe;
+            const meTag   = isMe ? '<span class="text-xs bg-yellow-300 text-yellow-900 font-bold px-2 py-0.5 rounded-full ml-1">ඔබ</span>' : '';
+
+            const card = document.createElement('div');
+            card.className = 'podium-slot';
+            card.innerHTML = `
+                <div class="w-full bg-white rounded-2xl border-2 p-4 text-center ${rankClass} ${heightClass} flex flex-col items-center justify-center gap-1">
+                    <div class="text-4xl">${medalEmoji}</div>
+                    <p class="text-base font-extrabold text-gray-800 leading-tight">${escHtml(user.name)} ${meTag}</p>
+                    <p class="text-3xl font-black ${rank === 1 ? 'text-yellow-500' : rank === 2 ? 'text-slate-500' : 'text-amber-700'}">${total}</p>
+                    <p class="text-xs text-gray-400 font-semibold">ලකුණු</p>
+                    <div class="flex flex-wrap justify-center gap-1 mt-1">${scoreBreakdown(user.scores)}</div>
+                </div>
+                <div class="w-full ${rank === 1 ? 'bg-yellow-400 h-16' : rank === 2 ? 'bg-slate-300 h-10' : 'bg-amber-600 h-6'} rounded-b-xl"></div>`;
+            return card;
+        }
+
+        // ── List row for ranks 4–10 ──────────────────────────────────────
+        function makeRankRow(user, rank, highlight) {
+            const total = totalOf(user.scores);
+            const row   = document.createElement('div');
+            row.className = `flex items-center gap-4 px-5 py-3 border-b border-gray-100 last:border-b-0 ${highlight ? 'rank-row-me' : ''}`;
+            row.innerHTML = `
+                <span class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 font-extrabold text-gray-600 text-sm shrink-0">${rank}</span>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-gray-800 truncate">${escHtml(user.name)} ${highlight ? '<span class="text-xs bg-yellow-300 text-yellow-900 font-bold px-1.5 py-0.5 rounded-full">ඔබ</span>' : ''}</p>
+                    <div class="flex flex-wrap gap-1 mt-0.5">${scoreBreakdown(user.scores)}</div>
+                </div>
+                <span class="font-extrabold text-orange-600 text-xl shrink-0">${total}</span>`;
+            return row;
+        }
+
+        function escHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ── Main render ───────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const data        = getGameData();
+            const currentUser = getCurrentUser();
+
+            // Build rankings
+            const rankings = data.users
+                .map(u => ({
+                    ...u,
+                    scores: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, ...u.scores },
+                    isMe: currentUser && u.id === currentUser.id
+                }))
+                .sort((a, b) => totalOf(b.scores) - totalOf(a.scores));
+
+            if (rankings.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+
+            const currentUserRank = currentUser
+                ? rankings.findIndex(u => u.id === currentUser.id) + 1
+                : -1;
+
+            // ── TOP 3 PODIUM ─────────────────────────────────────────────
+            if (rankings.length >= 1) {
+                document.getElementById('podium-section').classList.remove('hidden');
+                const bar = document.getElementById('podium-bar');
+
+                const medals = [
+                    { emoji: '🥇', cls: 'gold-card',   height: '' },
+                    { emoji: '🥈', cls: 'silver-card', height: '' },
+                    { emoji: '🥉', cls: 'bronze-card', height: '' }
+                ];
+
+                // Podium order: slot 0 = 2nd place (left), slot 1 = 1st place (center), slot 2 = 3rd place (right)
+                const podiumOrder = rankings.length === 1
+                    ? [null, rankings[0], null]
+                    : rankings.length === 2
+                        ? [rankings[1], rankings[0], null]
+                        : [rankings[1], rankings[0], rankings[2]];
+
+                const rankForSlot = [2, 1, 3];
+
+                podiumOrder.forEach((user, slotIdx) => {
+                    const rank = rankForSlot[slotIdx];
+                    if (!user) {
+                        const empty = document.createElement('div');
+                        empty.className = 'podium-slot';
+                        bar.appendChild(empty);
+                        return;
+                    }
+                    const m = medals[rank - 1];
+                    // 1st place card is visually taller
+                    const heightExtra = rank === 1 ? 'min-h-[180px]' : 'min-h-[140px]';
+                    bar.appendChild(makePodiumCard(user, rank, m.cls, m.emoji, heightExtra));
+                });
+            }
+
+            // ── RANKS 4–10 ────────────────────────────────────────────────
+            const rest = rankings.slice(3, 10);
+            if (rest.length > 0) {
+                document.getElementById('rank-list-section').classList.remove('hidden');
+                const list = document.getElementById('rank-list');
+                rest.forEach((user, i) => {
+                    const rank      = i + 4;
+                    const highlight = currentUser && user.id === currentUser.id;
+                    list.appendChild(makeRankRow(user, rank, highlight));
+                });
+            }
+
+            // ── CURRENT USER (if outside top 10) ─────────────────────────
+            if (currentUserRank > 10) {
+                document.getElementById('my-rank-section').classList.remove('hidden');
+                const myRow = document.getElementById('my-rank-row');
+                const me    = rankings[currentUserRank - 1];
+                myRow.appendChild(makeRankRow(me, currentUserRank, true));
+            }
+
+            // If current user is in top 3, highlight their podium card (already handled via isMe)
+        });
+    </script>
+</body>
+</html>
